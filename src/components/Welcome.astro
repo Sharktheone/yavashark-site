@@ -79,8 +79,8 @@ import background from '../assets/background.svg'
                         fill: false,
                     },
                     {
-                        label: 'Skipped',
-                        data: {y: testHistory.runs.map(run => run.skipped), x: testHistory.runs.map(run => formatTime(run.timestamp))},
+                        label: 'Not Implemented',
+                        data: testHistory.runs.map(run => ({y: run.not_implemented, x: formatTime(run.timestamp)})),
                         borderColor: 'rgb(255, 205, 86)',
                         tension: 0.1,
                         fill: false,
