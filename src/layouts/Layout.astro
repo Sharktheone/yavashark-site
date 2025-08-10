@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Yavashark test262 results</title>
@@ -14,11 +14,36 @@
 </html>
 
 <style>
+	/* Global theme */
+	:root {
+		--bg-start: #0b1220; /* deep blue */
+		--bg-end: #020617;   /* near-black */
+		--card-bg: rgba(255, 255, 255, 0.04);
+		--card-border: rgba(255, 255, 255, 0.08);
+		--text-primary: #e2e8f0; /* slate-200 */
+		--text-muted: #94a3b8;   /* slate-400 */
+		--accent: #22d3ee;       /* cyan-400 */
+		--accent-2: #a78bfa;     /* violet-400 */
+	}
+
 	html,
 	body {
 		margin: 0;
-		width: 100vw;
-		height: 100vh;
-		background-color: #030712FF;
+		min-height: 100%;
+		width: 100%;
+	}
+
+	* { box-sizing: border-box; }
+
+	body {
+		color: var(--text-primary);
+		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+		background:
+			radial-gradient(1200px 600px at 10% -10%, rgba(34, 211, 238, 0.12), transparent 60%),
+			radial-gradient(1000px 500px at 110% 10%, rgba(167, 139, 250, 0.12), transparent 60%),
+			linear-gradient(180deg, var(--bg-start), var(--bg-end));
+		background-attachment: fixed;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
 	}
 </style>

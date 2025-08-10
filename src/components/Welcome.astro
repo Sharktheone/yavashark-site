@@ -1,6 +1,4 @@
 ---
-import astroLogo from '../assets/astro.svg'
-import background from '../assets/background.svg'
 ---
 
 <div id="container">
@@ -9,108 +7,188 @@ import background from '../assets/background.svg'
             Yavashark test262 results
         </h1>
         <section id="diagram">
-            <canvas id="testHistoryChart"></canvas>
+            <div class="card">
+                <canvas id="testHistoryChart"></canvas>
+            </div>
         </section>
     </main>
 </div>
 
 <style>
     #container {
-        font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
-        background-color: #030712FF;
-        height: 100%;
-        color: white;
+        height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 2rem 1rem;
+        color: var(--text-primary);
     }
 
     main {
-        height: 100%;
-        justify-content: center;
-        align-items: center;
+        width: 100%;
         display: flex;
         flex-direction: column;
-    }
-
-    section {
-        padding: 1rem;
-        max-height: 80vh;
-        width: 100%;
-        box-sizing: border-box;
-        display: flex;
-        justify-content: center;
-
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
     }
 
     h1 {
-        font-size: 3rem;
-        margin: 0 auto;
-        width: max-content;
+        font-size: clamp(2rem, 4vw + 1rem, 3.25rem);
+        line-height: 1.1;
+        margin: 0;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+        margin: 0.25rem 0 0.75rem;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    #diagram {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 0.25rem;
+    }
+
+    .card {
+        width: min(1100px, 92vw);
+        padding: 1rem;
+        border-radius: 16px;
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+        overflow: hidden;
+        backdrop-filter: blur(8px);
+    }
+
+    /* Fallback if backdrop-filter unsupported */
+    @supports not ((backdrop-filter: blur(8px))) {
+        .card { background: rgba(17, 24, 39, 0.5); }
+    }
+
+    canvas#testHistoryChart {
+        display: block;
+        width: 100% !important;
+        height: 420px !important;
+    }
+
+    @media (max-width: 640px) {
+        canvas#testHistoryChart { height: 340px !important; }
     }
 </style>
-
 
 <script>
     import { Chart } from 'chart.js/auto';
     import 'chartjs-adapter-date-fns';
 
-    const endpoint = "https://raw.githubusercontent.com/Sharktheone/yavashark-data/refs/heads/main/history.json"
+    const endpoint = "https://raw.githubusercontent.com/Sharktheone/yavashark-data/refs/heads/main/history.json";
+
+    function cssVar(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || undefined;
+    }
 
     async function fetchTestHistory() {
-        const response = await fetch(endpoint)
-        if (!response.ok) {
-            console.error(`Failed to fetch test history: ${response.status} ${response.statusText}`)
-            return
+        try {
+            const response = await fetch(endpoint);
+            if (!response.ok) {
+                console.error(`Failed to fetch test history: ${response.status} ${response.statusText}`);
+                return null;
+            }
+            return await response.json();
+        } catch (e) {
+            console.error('Failed to fetch test history:', e);
+            return null;
         }
-        return response.json()
     }
 
     fetchTestHistory().then(testHistory => {
-        if (!testHistory) return
+        if (!testHistory) return;
 
-        const ctx = document.getElementById('testHistoryChart')!.getContext('2d')
+        const ctx = document.getElementById('testHistoryChart')!.getContext('2d');
+
+        const text = cssVar('--text-primary') || '#e2e8f0';
+        const muted = cssVar('--text-muted') || '#94a3b8';
+        const grid = 'rgba(148, 163, 184, 0.25)';
+
         new Chart(ctx, {
             type: 'line',
             data: {
                 datasets: [
                     {
                         label: 'Passed',
-                        data: testHistory.runs.map(run => ({y: run.passed, x: run.time * 1000})),
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1,
+                        data: testHistory.runs.map(run => ({ y: run.passed, x: run.time * 1000 })),
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.25)',
+                        pointRadius: 1.5,
+                        tension: 0.22,
                         fill: false,
                     },
                     {
                         label: 'Failed',
-                        data: testHistory.runs.map(run => ({y: run.failed, x: run.time * 1000})),
-                        borderColor: 'rgb(255, 99, 132)',
-                        tension: 0.1,
+                        data: testHistory.runs.map(run => ({ y: run.failed, x: run.time * 1000 })),
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.25)',
+                        pointRadius: 1.5,
+                        tension: 0.22,
                         fill: false,
                     },
                     {
                         label: 'Not Implemented',
-                        data: testHistory.runs.map(run => ({y: run.not_implemented, x: run.time * 1000})),
-                        borderColor: 'rgb(255, 205, 86)',
-                        tension: 0.1,
+                        data: testHistory.runs.map(run => ({ y: run.not_implemented, x: run.time * 1000 })),
+                        borderColor: 'rgb(234, 179, 8)',
+                        backgroundColor: 'rgba(234, 179, 8, 0.25)',
+                        pointRadius: 1.5,
+                        tension: 0.22,
                         fill: false,
                     },
                 ]
             },
             options: {
                 responsive: true,
-                scales: {
-                    x: {
-                        type: 'time',
-                    },
-                },
+                maintainAspectRatio: false,
+                interaction: { mode: 'nearest', intersect: false },
                 plugins: {
                     legend: {
                         position: 'top',
+                        labels: { color: text }
                     },
                     title: {
                         display: true,
-                        text: 'Test History Results'
+                        text: 'Test History Results',
+                        color: text,
+                        padding: { top: 6, bottom: 8 },
+                        font: { size: 16, weight: '600' }
+                    },
+                    tooltip: {
+                        padding: 10,
+                        titleColor: text,
+                        bodyColor: text,
+                        backgroundColor: 'rgba(2, 6, 23, 0.9)',
+                        borderColor: grid,
+                        borderWidth: 1
                     }
                 },
+                scales: {
+                    x: {
+                        type: 'time',
+                        grid: { color: grid },
+                        ticks: { color: muted }
+                    },
+                    y: {
+                        grid: { color: grid },
+                        ticks: { color: muted }
+                    }
+                },
+                layout: { padding: { left: 4, right: 8, top: 4, bottom: 4 } },
+                animation: { duration: 450 },
+                devicePixelRatio: window.devicePixelRatio || 1
             }
-        })
-    })
+        });
+    });
 </script>
