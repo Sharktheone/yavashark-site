@@ -1,0 +1,51 @@
+---
+---
+
+<label class="toggle">
+    <input type="checkbox" id="stackToggle" />
+    <span class="slider" aria-hidden="true"></span>
+    <span class="label">Stack datasets</span>
+</label>
+
+<style>
+    .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        cursor: pointer;
+        user-select: none;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+    .toggle input { display: none; }
+    .toggle .slider {
+        width: 44px; height: 26px; border-radius: 999px; position: relative;
+        background: rgba(148, 163, 184, 0.35); border: 1px solid var(--card-border);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+        transition: background 180ms ease;
+    }
+    .toggle .slider::after {
+        content: ""; position: absolute; top: 2px; left: 2px; width: 21px; height: 21px;
+        background: #0ea5e9; border-radius: 50%; transition: transform 180ms ease, background 180ms ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    }
+    .toggle input:checked + .slider { background: rgba(34, 211, 238, 0.35); }
+    .toggle input:checked + .slider::after { transform: translateX(18px); background: #22d3ee; }
+
+    .toggle .label { color: var(--text-muted); }
+</style>
+
+<script>
+    const stackToggle = document.getElementById('stackToggle');
+    // initialize from localStorage
+    const stored = localStorage.getItem('stackMode');
+    const initialStacked = stored === null ? false : stored === 'true';
+    if (stackToggle) stackToggle.checked = initialStacked;
+
+    stackToggle?.addEventListener('change', (e) => {
+        const checked = e.currentTarget.checked;
+        localStorage.setItem('stackMode', String(checked));
+        // notify listeners (e.g., the chart component)
+        window.dispatchEvent(new CustomEvent('stack-mode-change', { detail: checked }));
+    });
+</script>

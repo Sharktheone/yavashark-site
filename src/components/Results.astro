@@ -1,0 +1,62 @@
+---
+import ChartToggle from './ChartToggle.astro';
+import TestHistoryChart from './TestHistoryChart.astro';
+import DiagramCard from './DiagramCard.astro';
+---
+
+<div id="container">
+    <main>
+        <h1>
+            Yavashark test262 results
+        </h1>
+        <div class="controls">
+            <ChartToggle />
+        </div>
+        <DiagramCard>
+            <TestHistoryChart />
+        </DiagramCard>
+    </main>
+</div>
+
+<style>
+    #container {
+        height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 2rem 1rem;
+        color: var(--text-primary);
+    }
+
+    main {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: clamp(2rem, 4vw + 1rem, 3.25rem);
+        line-height: 1.1;
+        margin: 0;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+        margin: 0.25rem 0 0.75rem;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    .controls {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
