@@ -1,0 +1,102 @@
+---
+import CodeEditor from './CodeEditor.astro';
+---
+<main class="engine-main">
+	<h1 class="title">Engine Playground</h1>
+	<p id="status" class="status">Preparing...</p>
+	<div class="panes">
+		<CodeEditor />
+		<section class="result-pane">
+			<div>
+				<h2 class="subheading">Result</h2>
+				<pre id="output" class="output"></pre>
+			</div>
+			<div>
+				<h2 class="subheading">Console</h2>
+				<pre id="console" class="console"></pre>
+			</div>
+		</section>
+	</div>
+	<p class="footer-note">Loaded engine</p>
+</main>
+<script type="module">
+const statusEl = document.getElementById('status');
+const outputEl = document.getElementById('output');
+const consoleEl = document.getElementById('console');
+let editorInstance;
+let engineInstance;
+let logs = [];
+
+async function loadEngine() {
+	statusEl.textContent = 'Loading engine...';
+	try {
+		const engineMod = await import('https://esm.sh/jsr/@yavashark/engine-git');
+		const { default: init, Engine, set_console_log } = engineMod;
+		if (init) { try { await init(); } catch { /* ignore */ } }
+		engineInstance = new Engine();
+		if (set_console_log) {
+			set_console_log((...args) => {
+				const line = args.map(a => { try { return typeof a === 'object' ? JSON.stringify(a) : String(a); } catch { return String(a); } }).join(' ');
+				logs.push(line);
+				consoleEl.textContent = logs.join('\n');
+			});
+		}
+		statusEl.textContent = editorInstance ? 'Ready' : 'Loaded engine, waiting for editor';
+	} catch (e) {
+		statusEl.textContent = 'Failed to load engine: ' + (e?.message || e);
+		console.error(e);
+	}
+}
+
+function attachRunHandlers() {
+	if (!editorInstance || !engineInstance) return;
+	const runBtn = document.getElementById('run');
+	const clearBtn = document.getElementById('clear');
+	if (!runBtn || !clearBtn) return;
+	statusEl.textContent = 'Ready';
+	runBtn.disabled = false;
+	if (!runBtn._wired) {
+		runBtn.addEventListener('click', async () => {
+			runBtn.disabled = true;
+			logs.length = 0; consoleEl.textContent=''; outputEl.textContent='';
+			try {
+				const code = editorInstance.getValue();
+				const result = engineInstance.eval(code);
+				if (result !== undefined) outputEl.textContent = result;
+				await engineInstance.run_event_loop().catch(()=>{});
+			} catch (e) { outputEl.textContent = 'Error: ' + (e?.message || e); }
+			runBtn.disabled = false;
+		});
+		runBtn._wired = true;
+	}
+	if (!clearBtn._wired) {
+		clearBtn.addEventListener('click', () => {
+			editorInstance.setValue('');
+			outputEl.textContent='';
+			logs.length=0; consoleEl.textContent='';
+		});
+		clearBtn._wired = true;
+	}
+}
+
+document.addEventListener('editor-ready', (e) => {
+	editorInstance = e.detail.editor;
+	statusEl.textContent = engineInstance ? 'Ready' : 'Waiting for engine...';
+	attachRunHandlers();
+});
+
+loadEngine().then(attachRunHandlers);
+</script>
+<style>
+.engine-main { max-width:100%; margin:0 auto; padding:1rem 1.25rem 2rem; font-family:inherit; min-height:100vh; box-sizing:border-box; display:flex; flex-direction:column; }
+.title { margin-top:0; }
+.status { font-size:0.9rem; color:var(--text-muted); }
+.panes { display:grid; grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); gap:1rem; align-items:stretch; flex:1; min-height:0; }
+@media (max-width: 860px) { .panes { grid-template-columns: 1fr; } }
+.result-pane { display:flex; flex-direction:column; gap:1rem; min-height:0; min-width:0; }
+.subheading { margin:.25rem 0 .5rem; font-size:1.1rem; }
+.output, .console { margin:0; background:var(--card-bg); border:1px solid var(--card-border); padding:.75rem; white-space:pre-wrap; word-break:break-word; border-radius:8px; overflow:auto; }
+.output { min-height:3rem; }
+.console { min-height:8rem; }
+.footer-note { font-size:.75rem; color:var(--text-muted); margin-top:1rem; }
+</style>
