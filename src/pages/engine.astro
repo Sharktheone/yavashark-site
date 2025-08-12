@@ -1,0 +1,122 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout>
+	<main class="engine-main">
+		<h1 class="title">Engine Playground</h1>
+		<p id="status" class="status">Preparing...</p>
+		<div class="panes">
+			<section class="editor-pane">
+				<label for="code" class="label">Code</label>
+				<textarea id="code" spellcheck="false" class="code-input">
+// Try a few things:
+console.log("Hello, world!");
+
+// Returned value is shown under Result
+1 + 2 + 3
+
+// Pretty-printing objects
+console.log(&#123; a: 1, b: [2,3], nested: &#123; ok: true &#125; &#125;);
+
+                </textarea>
+				<div class="buttons">
+					<button id="run" disabled class="btn btn-run">Run</button>
+					<button id="clear" class="btn btn-clear">Clear</button>
+				</div>
+			</section>
+			<section class="result-pane">
+				<div>
+					<h2 class="subheading">Result</h2>
+					<pre id="output" class="output"></pre>
+				</div>
+				<div>
+					<h2 class="subheading">Console</h2>
+					<pre id="console" class="console"></pre>
+				</div>
+			</section>
+		</div>
+		<p class="footer-note">Loaded engine</p>
+	</main>
+	<script type="module">
+	(async () => {
+		const statusEl = document.getElementById('status');
+		const runBtn = document.getElementById('run');
+		const clearBtn = document.getElementById('clear');
+		const inputEl = document.getElementById('code');
+		const outputEl = document.getElementById('output');
+		const consoleEl = document.getElementById('console');
+
+		statusEl.textContent = 'Loading engine...';
+		try {
+			const {default: init, Engine, set_console_log} = await import('https://esm.sh/jsr/@yavashark/engine-git');
+
+			if (init) {
+				try { await init(); } catch (_) { }
+			}
+			const eng = new Engine();
+			const logs = [];
+
+			if (set_console_log) {
+				set_console_log((...args) => {
+					const line = args.map(a => {
+						try { return typeof a === 'object' ? JSON.stringify(a) : String(a); } catch { return String(a); }
+					}).join(' ');
+					logs.push(line);
+					consoleEl.textContent = logs.join('\n');
+				});
+			}
+			statusEl.textContent = 'Ready';
+			runBtn.disabled = false;
+
+			runBtn.addEventListener('click', async () => {
+				runBtn.disabled = true;
+				logs.length = 0;
+				consoleEl.textContent = '';
+				outputEl.textContent = '';
+				try {
+					const code = inputEl.value;
+					const result = eng.eval(code);
+					if (result !== undefined) outputEl.textContent = result;
+					await eng.run_event_loop().catch(() => {});
+				} catch (e) {
+					outputEl.textContent = 'Error: ' + (e?.message || e);
+				}
+				runBtn.disabled = false;
+			});
+
+			clearBtn.addEventListener('click', () => {
+				inputEl.value = '';
+				outputEl.textContent = '';
+				logs.length = 0;
+				consoleEl.textContent = '';
+			});
+		} catch (e) {
+			statusEl.textContent = 'Failed to load engine: ' + (e?.message || e);
+			console.error(e);
+		}
+	})();
+	</script>
+	<style>
+	.engine-main { max-width:900px; margin:0 auto; padding:2rem; font-family:inherit; }
+	.title { margin-top:0; }
+	.status { font-size:0.9rem; color:var(--text-muted); }
+	.panes { display:flex; gap:1rem; flex-wrap:wrap; align-items:stretch; }
+	.editor-pane { flex:1 1 420px; min-width:320px; display:flex; flex-direction:column; gap:.5rem; }
+	.label { font-weight:600; }
+	.code-input { flex:1; min-height:400px; background:var(--card-bg); border:1px solid var(--card-border); color:var(--text-primary); padding:.75rem; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; border-radius:8px; resize:vertical; tab-size:2; font-size:0.95rem; }
+	@media (min-width: 900px) {
+		.code-input { min-height:480px; }
+	}
+	.buttons { display:flex; gap:.5rem; align-items:center; }
+	.btn { font-weight:500; border-radius:6px; cursor:pointer; padding:.55rem 1rem; }
+	.btn-run { background:var(--accent); color:#041318; font-weight:600; border:none; }
+	.btn-clear { background:var(--card-bg); color:var(--text-primary); border:1px solid var(--card-border); }
+	.result-pane { flex:1 1 360px; min-width:300px; display:flex; flex-direction:column; gap:1rem; }
+	.subheading { margin:.25rem 0 .5rem; font-size:1.1rem; }
+	.output, .console { margin:0; background:var(--card-bg); border:1px solid var(--card-border); padding:.75rem; white-space:pre-wrap; word-break:break-word; border-radius:8px; overflow:auto; }
+	.output { min-height:3rem; }
+	.console { min-height:6rem; }
+	.footer-note { font-size:.75rem; color:var(--text-muted); margin-top:2rem; }
+	.btn:disabled { opacity:.6; cursor:default; }
+	</style>
+</Layout>
