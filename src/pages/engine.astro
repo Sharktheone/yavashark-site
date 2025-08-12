@@ -7,18 +7,8 @@ import Layout from '../layouts/Layout.astro';
 		<p id="status" class="status">Preparing...</p>
 		<div class="panes">
 			<section class="editor-pane">
-				<label for="code" class="label">Code</label>
-				<textarea id="code" spellcheck="false" class="code-input">
-// Try a few things:
-console.log("Hello, world!");
-
-// Returned value is shown under Result
-1 + 2 + 3
-
-// Pretty-printing objects
-console.log(&#123; a: 1, b: [2,3], nested: &#123; ok: true &#125; &#125;);
-
-                </textarea>
+				<label for="editor" class="label">Code</label>
+				<div id="editor" class="code-editor" aria-label="Code editor" role="code"></div>
 				<div class="buttons">
 					<button id="run" disabled class="btn btn-run">Run</button>
 					<button id="clear" class="btn btn-clear">Clear</button>
@@ -42,20 +32,56 @@ console.log(&#123; a: 1, b: [2,3], nested: &#123; ok: true &#125; &#125;);
 		const statusEl = document.getElementById('status');
 		const runBtn = document.getElementById('run');
 		const clearBtn = document.getElementById('clear');
-		const inputEl = document.getElementById('code');
 		const outputEl = document.getElementById('output');
 		const consoleEl = document.getElementById('console');
+		const editorEl = document.getElementById('editor');
 
-		statusEl.textContent = 'Loading engine...';
+		const defaultCode = `// Try a few things:\nconsole.log("Hello, world!");\n\n// Returned value is shown under Result\n1 + 2 + 3\n\n// Pretty-printing objects\nconsole.log({ a: 1, b: [2,3], nested: { ok: true }});\n`;
+
+		function loadMonaco() {
+			return new Promise((resolve, reject) => {
+				if (window.monaco) return resolve(window.monaco);
+				const loader = document.createElement('script');
+				loader.src = 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js';
+				loader.onload = () => {
+					window.require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs' }});
+					window.require(['vs/editor/editor.main'], () => resolve(window.monaco));
+				};
+				loader.onerror = reject;
+				document.head.appendChild(loader);
+			});
+		}
+
+		statusEl.textContent = 'Loading editor & engine...';
 		try {
-			const {default: init, Engine, set_console_log} = await import('https://esm.sh/jsr/@yavashark/engine-git');
+			const [monacoMod, engineMod] = await Promise.all([
+				loadMonaco(),
+				import('https://esm.sh/jsr/@yavashark/engine-git')
+			]);
 
-			if (init) {
-				try { await init(); } catch (_) { }
-			}
+			const { default: init, Engine, set_console_log } = engineMod;
+			if (init) { try { await init(); } catch (_) { /* ignore */ } }
+
+			const editor = monacoMod.editor.create(editorEl, {
+				value: defaultCode,
+				language: 'javascript',
+				automaticLayout: true,
+				minimap: { enabled: false },
+				fontSize: 14,
+				theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs'
+			});
+			setEditorDynamicHeight();
+			window.addEventListener('resize', () => {
+				setEditorDynamicHeight();
+				editor.layout();
+			});
+
+			window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+				monacoMod.editor.setTheme(e.matches ? 'vs-dark' : 'vs');
+			});
+
 			const eng = new Engine();
 			const logs = [];
-
 			if (set_console_log) {
 				set_console_log((...args) => {
 					const line = args.map(a => {
@@ -65,6 +91,7 @@ console.log(&#123; a: 1, b: [2,3], nested: &#123; ok: true &#125; &#125;);
 					consoleEl.textContent = logs.join('\n');
 				});
 			}
+
 			statusEl.textContent = 'Ready';
 			runBtn.disabled = false;
 
@@ -74,7 +101,7 @@ console.log(&#123; a: 1, b: [2,3], nested: &#123; ok: true &#125; &#125;);
 				consoleEl.textContent = '';
 				outputEl.textContent = '';
 				try {
-					const code = inputEl.value;
+					const code = editor.getValue();
 					const result = eng.eval(code);
 					if (result !== undefined) outputEl.textContent = result;
 					await eng.run_event_loop().catch(() => {});
@@ -85,38 +112,43 @@ console.log(&#123; a: 1, b: [2,3], nested: &#123; ok: true &#125; &#125;);
 			});
 
 			clearBtn.addEventListener('click', () => {
-				inputEl.value = '';
+				editor.setValue('');
 				outputEl.textContent = '';
 				logs.length = 0;
 				consoleEl.textContent = '';
 			});
+
 		} catch (e) {
-			statusEl.textContent = 'Failed to load engine: ' + (e?.message || e);
+			statusEl.textContent = 'Failed to load engine/editor: ' + (e?.message || e);
 			console.error(e);
+		}
+
+		function setEditorDynamicHeight() {
+			const h = Math.max(400, window.innerHeight - 220);
+			editorEl.style.height = h + 'px';
 		}
 	})();
 	</script>
 	<style>
-	.engine-main { max-width:900px; margin:0 auto; padding:2rem; font-family:inherit; }
+	.engine-main { max-width:100%; margin:0 auto; padding:1rem 1.25rem 2rem; font-family:inherit; min-height:100vh; box-sizing:border-box; display:flex; flex-direction:column; }
 	.title { margin-top:0; }
 	.status { font-size:0.9rem; color:var(--text-muted); }
-	.panes { display:flex; gap:1rem; flex-wrap:wrap; align-items:stretch; }
-	.editor-pane { flex:1 1 420px; min-width:320px; display:flex; flex-direction:column; gap:.5rem; }
+	.panes { display:flex; gap:1rem; flex:1; flex-wrap:wrap; align-items:stretch; min-height:0; }
+	.editor-pane { flex:2 1 60%; min-width:320px; display:flex; flex-direction:column; gap:.5rem; min-height:0; }
 	.label { font-weight:600; }
-	.code-input { flex:1; min-height:400px; background:var(--card-bg); border:1px solid var(--card-border); color:var(--text-primary); padding:.75rem; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; border-radius:8px; resize:vertical; tab-size:2; font-size:0.95rem; }
-	@media (min-width: 900px) {
-		.code-input { min-height:480px; }
-	}
+	.code-editor { flex:none; width:100%; min-height:0; background:var(--card-bg); border:1px solid var(--card-border); border-radius:8px; overflow:hidden; }
+	@media (min-width: 900px) { .code-editor { min-height:70vh; } }
 	.buttons { display:flex; gap:.5rem; align-items:center; }
 	.btn { font-weight:500; border-radius:6px; cursor:pointer; padding:.55rem 1rem; }
 	.btn-run { background:var(--accent); color:#041318; font-weight:600; border:none; }
 	.btn-clear { background:var(--card-bg); color:var(--text-primary); border:1px solid var(--card-border); }
-	.result-pane { flex:1 1 360px; min-width:300px; display:flex; flex-direction:column; gap:1rem; }
+	.result-pane { flex:1 1 35%; min-width:300px; display:flex; flex-direction:column; gap:1rem; min-height:0; }
 	.subheading { margin:.25rem 0 .5rem; font-size:1.1rem; }
 	.output, .console { margin:0; background:var(--card-bg); border:1px solid var(--card-border); padding:.75rem; white-space:pre-wrap; word-break:break-word; border-radius:8px; overflow:auto; }
 	.output { min-height:3rem; }
-	.console { min-height:6rem; }
-	.footer-note { font-size:.75rem; color:var(--text-muted); margin-top:2rem; }
+	.console { min-height:8rem; }
+	.footer-note { font-size:.75rem; color:var(--text-muted); margin-top:1rem; }
 	.btn:disabled { opacity:.6; cursor:default; }
+	.panes { align-items:flex-start; }
 	</style>
 </Layout>
