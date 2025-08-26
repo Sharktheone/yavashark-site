@@ -1,0 +1,4 @@
+[submodule "test262/viewer"]
+	path = test262/viewer
+	url = https://github.com/Sharktheone/wpt-viewer
+	branch = test262
