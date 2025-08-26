@@ -1,5 +1,14 @@
 {
   "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "wpt-viewer/*": ["./test262/viewer/src/*"],
+      "#/*": ["./test262/viewer/src/*"]
+    },
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  },
   "include": [".astro/types.d.ts", "**/*"],
   "exclude": ["dist"]
 }

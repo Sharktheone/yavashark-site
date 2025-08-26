@@ -9,8 +9,18 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/preact": "^4.1.0",
+    "@preact/signals": "^2.3.1",
     "astro": "^5.2.5",
     "chart.js": "^4.4.7",
-    "chartjs-adapter-date-fns": "^3.0.0"
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "lucide-preact": "^0.542.0",
+    "preact": "^10.27.1",
+    "sass": "^1.91.0",
+    "@catppuccin/highlightjs": "^1.0.0",
+    "@catppuccin/palette": "^1.7.1",
+    "@fontsource/inter": "^5.1.1",
+    "highlight.js": "^11.11.1",
+    "@yaireo/relative-time": "^1.0.5"
   }
 }
