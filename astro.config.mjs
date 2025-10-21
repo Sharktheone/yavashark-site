@@ -4,7 +4,6 @@ import preact from '@astrojs/preact';
 
 // https://astro.build/config
 export default defineConfig({
-    site: "https://sharktheone.github.io",
-    base: "yavashark-site",
+    site: "https://yavashark.dev",
     integrations: [preact()]
 });
