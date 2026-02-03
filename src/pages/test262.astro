@@ -13,6 +13,15 @@ import {App} from "wpt-viewer/Components/App"
     </main>
 </AstroApp>
 
+<script>
+import { initializeSource, loadConfig } from "wpt-viewer/Config";
+import { initFromUrlParams } from "wpt-viewer/Routing";
+
+await loadConfig();
+initFromUrlParams();
+await initializeSource();
+</script>
+
 <style>
     main {
         height: 100vh;

@@ -1,24 +1,23 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "yavashark",
       "dependencies": {
         "@astrojs/preact": "^4.1.0",
-        "@preact/signals": "^2.3.1",
-        "astro": "^5.2.5",
-        "chart.js": "^4.4.7",
-        "chartjs-adapter-date-fns": "^3.0.0",
-        "lucide-preact": "^0.542.0",
-        "preact": "^10.27.1",
-        "sass": "^1.91.0",
-      },
-      "devDependencies": {
         "@catppuccin/highlightjs": "^1.0.0",
         "@catppuccin/palette": "^1.7.1",
         "@fontsource/inter": "^5.1.1",
+        "@preact/signals": "^2.3.1",
         "@yaireo/relative-time": "^1.0.5",
+        "astro": "^5.2.5",
+        "chart.js": "^4.4.7",
+        "chartjs-adapter-date-fns": "^3.0.0",
         "highlight.js": "^11.11.1",
+        "lucide-preact": "^0.561.0",
+        "preact": "^10.27.1",
+        "sass": "^1.91.0",
       },
     },
   },
@@ -579,7 +578,7 @@
 
     "lru-cache": ["lru-cache@10.4.3", "", {}, "sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ=="],
 
-    "lucide-preact": ["lucide-preact@0.542.0", "", { "peerDependencies": { "preact": "^10.5.13" } }, "sha512-MR0imumRpU816lQnfxO16JDGqBzg9NCes1uZpajFzIPi0lmyeZQUHeqYgD4ZwI71oLwLTWMOfeaJ0yVxaq2/rQ=="],
+    "lucide-preact": ["lucide-preact@0.561.0", "", { "peerDependencies": { "preact": "^10.27.2" } }, "sha512-K8FHyuvOACZybztKYljWyzWylN4l5M7XXDw9v+HEto7WdNo1Y8QcoNdHeN7U4GygWtJNJlEtsLH1YPsfVAvBQA=="],
 
     "magic-string": ["magic-string@0.30.17", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0" } }, "sha512-sNPKHvyjVf7gyjwS4xGTaW/mCnF8wnjtifKBEhxfZ7E/S8tQ0rssrwGNn6q8JH/ohItJfSQp9mBtQYuTlH5QnA=="],
 
