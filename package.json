@@ -14,7 +14,7 @@
     "astro": "^5.2.5",
     "chart.js": "^4.4.7",
     "chartjs-adapter-date-fns": "^3.0.0",
-    "lucide-preact": "^0.542.0",
+    "lucide-preact": "^0.561.0",
     "preact": "^10.27.1",
     "sass": "^1.91.0",
     "@catppuccin/highlightjs": "^1.0.0",
