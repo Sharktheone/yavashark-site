@@ -17,7 +17,9 @@ import {App} from "wpt-viewer/Components/App"
 import { initializeSource, loadConfig } from "wpt-viewer/Config";
 import { initFromUrlParams } from "wpt-viewer/Routing";
 
-await loadConfig();
+const domain = window.location.origin
+
+await loadConfig(domain + "/config.json");
 initFromUrlParams();
 await initializeSource();
 </script>
