@@ -1,0 +1,519 @@
+---
+import Logo from "./Logo.astro";
+import { DEFAULT_CODE } from "./playground-code";
+
+const ghostLines = DEFAULT_CODE.trimEnd().split("\n");
+---
+
+<div class="pg-slot" id="playground">
+    <div class="pg box" data-state="idle">
+        <button class="pg-start" type="button">
+            <span class="pg-ghost" aria-hidden="true">
+                {ghostLines.map((line, i) => <span><i>{i + 1}</i>{line}</span>)}
+            </span>
+            <span class="pg-cta">
+                <Logo id="pg-start-logo" shape="play" class="pg-start-logo" morph dur={0.6} />
+                <span class="pg-cta-label">Open playground</span>
+            </span>
+        </button>
+
+        <div class="pg-ui" hidden>
+            <div class="pg-body">
+                <div class="pg-editor"></div>
+                <div class="pg-out">
+                    <div class="pg-out-head">Console</div>
+                    <div class="pg-log">
+                        <pre class="pg-console"></pre>
+                        <pre class="pg-result"></pre>
+                    </div>
+                    <div class="pg-foot">
+                        <button class="pg-icon" type="button" data-action="expand" aria-label="Expand" title="Expand (Esc to close)">
+                            <svg viewBox="0 0 16 16" aria-hidden="true" class="pg-expand-icon">
+                                <path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" />
+                            </svg>
+                            <svg viewBox="0 0 16 16" aria-hidden="true" class="pg-shrink-icon">
+                                <path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4" />
+                            </svg>
+                        </button>
+                        <button class="pg-run" type="button" data-action="run" title="Run (Ctrl+Enter)">
+                            <Logo id="pg-run-logo" shape="play" class="pg-run-logo" hop="manual" dur={0.7} />
+                            <span>Run</span>
+                            <kbd>Ctrl ↵</kbd>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pg-slot {
+        width: 100%;
+        height: var(--runner-h, 26rem);
+    }
+
+    .pg {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        container-type: inline-size;
+        text-align: left;
+    }
+
+    .pg[data-expanded] {
+        position: fixed;
+        inset: 4vh 4vw;
+        z-index: 100;
+        height: auto;
+        box-shadow: 0 0 0 100vmax oklch(0 0 0 / 0.5);
+    }
+
+    .pg-start {
+        position: relative;
+        display: grid;
+        place-items: center;
+        flex: 1;
+        padding: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+    }
+
+    .pg-start[hidden] {
+        display: none;
+    }
+
+    /* Faded preview of the editor, so the box reads as "code goes here". */
+    .pg-ghost {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 0.9rem 1rem;
+        font: 0.8rem/1.6 var(--mono);
+        text-align: left;
+        white-space: pre;
+        opacity: 0.4;
+        filter: blur(1.5px);
+        mask-image: linear-gradient(to bottom, #000 30%, transparent 85%);
+        transition: opacity 0.2s, filter 0.2s;
+    }
+
+    .pg-ghost i {
+        display: inline-block;
+        width: 2rem;
+        color: var(--muted);
+        font-style: normal;
+    }
+
+    .pg-start:hover .pg-ghost {
+        opacity: 0.55;
+        filter: blur(0.5px);
+    }
+
+    .pg-cta {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .pg-start :global(.pg-start-logo) {
+        width: 6rem;
+        height: 6rem;
+        transition: transform 0.15s;
+    }
+
+    .pg-start:hover :global(.pg-start-logo) {
+        transform: scale(1.06);
+    }
+
+    .pg-cta-label {
+        padding: 0.15rem 0.6rem;
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--fg);
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .pg:not([data-state="loading"]) .pg-start:hover .pg-cta-label {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .pg[data-state="loading"] .pg-start {
+        cursor: progress;
+    }
+
+    .pg[data-state="loading"] :global(.pg-start-logo) {
+        animation: swim 1.4s 0.6s ease-in-out infinite;
+    }
+
+    @keyframes swim {
+        0%, 100% { transform: translateX(0) rotate(0deg); }
+        25% { transform: translateX(0.3rem) rotate(-3deg); }
+        75% { transform: translateX(-0.3rem) rotate(3deg); }
+    }
+
+    .pg-ui {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .pg-ui[hidden] {
+        display: none;
+    }
+
+    .pg-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.4rem 0.5rem;
+    }
+
+    .pg-icon {
+        display: grid;
+        place-items: center;
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        border: 0;
+        border-radius: 6px;
+        background: none;
+        cursor: pointer;
+    }
+
+    .pg-icon:hover {
+        background: color-mix(in oklch, var(--fg) 8%, transparent);
+    }
+
+    .pg-icon:disabled {
+        cursor: default;
+        background: none;
+    }
+
+    .pg-run {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        height: 2.5rem;
+        padding: 0 0.75rem 0 0.4rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .pg-run:hover {
+        border-color: var(--muted);
+    }
+
+    .pg-run:disabled {
+        cursor: default;
+    }
+
+    .pg-run :global(.pg-run-logo) {
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+
+    .pg-run kbd {
+        color: var(--muted);
+        font: 0.7rem var(--mono);
+    }
+
+    .pg-icon svg:not(.logo) {
+        width: 1rem;
+        height: 1rem;
+        fill: none;
+        stroke: var(--muted);
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .pg-shrink-icon,
+    .pg[data-expanded] .pg-expand-icon {
+        display: none;
+    }
+
+    .pg[data-expanded] .pg-shrink-icon {
+        display: block;
+    }
+
+    /* Editor on top, output below; side by side once the box is wide enough. */
+    .pg-body {
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 0.55fr);
+        flex: 1;
+        min-height: 0;
+    }
+
+    @container (min-width: 560px) {
+        .pg-body {
+            grid-template-rows: none;
+            grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+        }
+
+        .pg-out {
+            border-top: 0 !important;
+            border-left: 1px solid var(--border);
+        }
+    }
+
+    .pg-editor {
+        min-height: 0;
+    }
+
+    .pg-out {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        border-top: 1px solid var(--border);
+        background: color-mix(in oklch, var(--fg) 3%, var(--panel));
+    }
+
+    .pg-out-head {
+        padding: 0.55rem 0.8rem 0;
+        color: var(--muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .pg-log {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    pre {
+        margin: 0;
+        padding: 0.6rem 0.8rem 0;
+        font: 0.8rem/1.55 var(--mono);
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    pre:empty {
+        display: none;
+    }
+
+    .pg-result {
+        color: var(--muted);
+    }
+
+    .pg-result::before {
+        content: "← ";
+    }
+
+    .pg-result.is-error {
+        color: #d0463f;
+    }
+
+    .pg-result.is-error::before {
+        content: "✕ ";
+    }
+</style>
+
+<script>
+    import { DEFAULT_CODE } from "./playground-code";
+
+    const MONACO = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs";
+    const ENGINE = "https://esm.sh/jsr/@yavashark/engine-git";
+    const MORPH_MS = 600; // = dur of #pg-start-logo
+
+    const root = document.querySelector<HTMLElement>(".pg")!;
+    const start = root.querySelector<HTMLButtonElement>(".pg-start")!;
+    const startLabel = root.querySelector<HTMLElement>(".pg-cta-label")!;
+    const ui = root.querySelector<HTMLElement>(".pg-ui")!;
+    const runBtn = root.querySelector<HTMLButtonElement>('[data-action="run"]')!;
+    const expandBtn = root.querySelector<HTMLButtonElement>('[data-action="expand"]')!;
+    const resultEl = root.querySelector<HTMLElement>(".pg-result")!;
+    const consoleEl = root.querySelector<HTMLElement>(".pg-console")!;
+
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    let monaco: any;
+    let editor: any;
+    let engine: any;
+    let logs: string[] = [];
+
+    function format(v: unknown): string {
+        if (typeof v === "string") return v;
+        try {
+            return typeof v === "object" && v !== null ? JSON.stringify(v) : String(v);
+        } catch {
+            return String(v);
+        }
+    }
+
+    function loadMonaco(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const w = window as any;
+            if (w.monaco) return resolve(w.monaco);
+            const s = document.createElement("script");
+            s.src = `${MONACO}/loader.min.js`;
+            s.onload = () => {
+                w.require.config({ paths: { vs: MONACO } });
+                w.require(["vs/editor/editor.main"], () => resolve(w.monaco), reject);
+            };
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+    }
+
+    async function loadEngine() {
+        const mod = await import(/* @vite-ignore */ ENGINE);
+        if (mod.default) {
+            try {
+                await mod.default();
+            } catch {
+                /* already initialized */
+            }
+        }
+        const instance = new mod.Engine();
+        mod.set_console_log?.((...args: unknown[]) => {
+            logs.push(args.map(format).join(" "));
+            consoleEl.textContent = logs.join("\n");
+        });
+        return instance;
+    }
+
+    // Monaco can't read CSS variables, so resolve the theme colors to hex.
+    const probe = document.createElement("canvas").getContext("2d", { willReadFrequently: true })!;
+    function hex(cssVar: string): string {
+        probe.canvas.width = probe.canvas.height = 1;
+        probe.clearRect(0, 0, 1, 1);
+        probe.fillStyle = getComputedStyle(root).getPropertyValue(cssVar).trim();
+        probe.fillRect(0, 0, 1, 1);
+        const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
+        return "#" + [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("");
+    }
+
+    function applyTheme() {
+        if (!monaco) return;
+        const dark = getComputedStyle(root).getPropertyValue("--dark").trim() === "1";
+        const bg = hex("--panel");
+        const text = hex("--fg");
+        const muted = hex("--muted");
+        const line = hex("--border");
+        monaco.editor.defineTheme("yavashark", {
+            base: dark ? "vs-dark" : "vs",
+            inherit: true,
+            rules: [{ token: "comment", foreground: muted.slice(1), fontStyle: "italic" }],
+            colors: {
+                "editor.background": bg,
+                "editor.foreground": text,
+                "editorGutter.background": bg,
+                "editor.lineHighlightBackground": "#00000000",
+                "editor.lineHighlightBorder": "#00000000",
+                focusBorder: "#00000000",
+                "editorCursor.foreground": text,
+                "editorLineNumber.foreground": line,
+                "editorLineNumber.activeForeground": muted,
+                "editorIndentGuide.background1": line,
+                "scrollbarSlider.background": line + "aa",
+            },
+        });
+        monaco.editor.setTheme("yavashark");
+    }
+
+    // Starts one of the logo's SVG animations (see Logo.astro).
+    const animate = (id: string) => document.querySelector<SVGAnimationElement>(`#${id}`)?.beginElement();
+
+    async function run() {
+        if (!engine || !editor || runBtn.disabled) return;
+        runBtn.disabled = true;
+        animate("pg_run_logo_hop");
+        logs = [];
+        consoleEl.textContent = "";
+        resultEl.textContent = "";
+        resultEl.classList.remove("is-error");
+
+        // Let the button repaint before the (synchronous) eval blocks the thread.
+        await new Promise(requestAnimationFrame);
+        await sleep(0);
+
+        try {
+            const result = engine.eval(editor.getValue());
+            if (result !== undefined) resultEl.textContent = format(result);
+            await engine.run_event_loop?.();
+        } catch (e: any) {
+            resultEl.textContent = String(e?.message ?? e);
+            resultEl.classList.add("is-error");
+        }
+
+        runBtn.disabled = false;
+    }
+
+    function setExpanded(on: boolean) {
+        root.toggleAttribute("data-expanded", on);
+        document.documentElement.style.overflow = on ? "hidden" : "";
+        editor?.focus();
+    }
+
+    async function boot() {
+        if (root.dataset.state === "loading") return;
+        root.dataset.state = "loading";
+        animate("pg_start_logo_to");
+        startLabel.textContent = "Loading…";
+
+        try {
+            const [m, e] = await Promise.all([loadMonaco(), loadEngine(), sleep(MORPH_MS + 200)]);
+            monaco = m;
+            engine = e;
+        } catch (err: any) {
+            console.error(err);
+            root.dataset.state = "error";
+            animate("pg_start_logo_back");
+            startLabel.textContent = "Failed to load, click to retry";
+            start.title = String(err?.message ?? err);
+            return;
+        }
+
+        root.dataset.state = "ready";
+        start.hidden = true;
+        ui.hidden = false;
+
+        applyTheme();
+        editor = monaco.editor.create(root.querySelector(".pg-editor"), {
+            value: DEFAULT_CODE,
+            language: "javascript",
+            theme: "yavashark",
+            automaticLayout: true,
+            minimap: { enabled: false },
+            fontSize: 13,
+            fontFamily: getComputedStyle(root).getPropertyValue("--mono"),
+            lineNumbersMinChars: 3,
+            padding: { top: 10 },
+            scrollBeyondLastLine: false,
+            overviewRulerLanes: 0,
+            occurrencesHighlight: "off",
+            selectionHighlight: false,
+        });
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, run);
+        editor.focus();
+    }
+
+    start.addEventListener("click", boot);
+    runBtn.addEventListener("click", run);
+    expandBtn.addEventListener("click", () => setExpanded(!root.hasAttribute("data-expanded")));
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && root.hasAttribute("data-expanded")) setExpanded(false);
+    });
+
+    // The color picker is pure CSS; just mirror it into Monaco when it changes.
+    document.addEventListener("change", (e) => {
+        if ((e.target as HTMLInputElement).name === "color") applyTheme();
+    });
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
+</script>

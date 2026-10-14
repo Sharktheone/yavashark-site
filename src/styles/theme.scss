@@ -1,0 +1,99 @@
+@use "sass:list";
+
+// Site color schemes, picked with the radios in the top bar (pure CSS via :has()).
+// With nothing picked the site follows the system: white or black.
+
+// test262 chart categories (--c1..--c8), in the stack order of test262-series.ts.
+// Validated for color-blind separation against white and black surfaces.
+$chart-light: #5ac576, #cb4644, #ddac37, #835cbe, #e48233, #ca5794, #2d86c8, #3fc0c0;
+$chart-dark: #47aa62, #c44844, #b68b16, #7f5bb6, #cb6620, #cd72a7, #1f6cb0, #33a6a0;
+
+$pastels: (
+    "pink": 0,
+    "peach": 55,
+    "lemon": 92,
+    "mint": 160,
+    "sky": 230,
+    "lavender": 295,
+);
+
+@mixin chart($colors) {
+    @for $i from 1 through list.length($colors) {
+        --c#{$i}: #{list.nth($colors, $i)};
+    }
+}
+
+@mixin white {
+    --bg: #ffffff;
+    --panel: #fafafa;
+    --fg: #141414;
+    --muted: #6b6b6b;
+    --border: #e3e3e3;
+    --accent: #141414;
+    --logo: #1a1a1a;
+    --dark: 0;
+    color-scheme: light;
+    @include chart($chart-light);
+}
+
+@mixin black {
+    --bg: #0b0b0b;
+    --panel: #141414;
+    --fg: #ececec;
+    --muted: #9a9a9a;
+    --border: #272727;
+    --accent: #f5f5f5;
+    --logo: #f5f5f5;
+    --dark: 1;
+    color-scheme: dark;
+    @include chart($chart-dark);
+}
+
+@mixin pastel($h) {
+    --bg: oklch(0.94 0.035 #{$h});
+    --panel: oklch(0.975 0.014 #{$h});
+    --fg: oklch(0.26 0.03 #{$h});
+    --muted: oklch(0.48 0.035 #{$h});
+    --border: oklch(0.86 0.04 #{$h});
+    --accent: oklch(0.42 0.09 #{$h});
+    --logo: oklch(0.56 0.11 #{$h});
+    --dark: 0;
+    color-scheme: light;
+    @include chart($chart-light);
+}
+
+:root {
+    @include white;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not(:has([name="color"]:checked)) {
+        @include black;
+    }
+}
+
+:root:has(#color-white:checked) {
+    @include white;
+}
+
+:root:has(#color-black:checked) {
+    @include black;
+}
+
+#color-white + label {
+    --swatch: #ffffff;
+}
+
+#color-black + label {
+    --swatch: #0b0b0b;
+}
+
+@each $name, $h in $pastels {
+    :root:has(#color-#{$name}:checked) {
+        @include pastel($h);
+    }
+
+    #color-#{$name} + label {
+        --swatch: oklch(0.88 0.08 #{$h});
+    }
+}

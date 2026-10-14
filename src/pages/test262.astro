@@ -1,17 +1,17 @@
 ---
 
-import AstroApp from "../components/App.astro"
+import Layout from "../layouts/Layout.astro"
 import {App} from "wpt-viewer/Components/App"
 
 ---
 
-<AstroApp>
+<Layout>
     <main>
         <div>
             <App client:only />
         </div>
     </main>
-</AstroApp>
+</Layout>
 
 <script>
 import { initializeSource, loadConfig } from "wpt-viewer/Config";

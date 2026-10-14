@@ -1,0 +1,64 @@
+/* Colors come from theme.scss, switched by the color radios. */
+:root {
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --radius: 10px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    background: var(--bg);
+    transition: background-color 0.25s;
+}
+
+body {
+    margin: 0;
+    color: var(--fg);
+    font: 16px/1.5 var(--sans);
+}
+
+a {
+    color: var(--accent);
+    text-underline-offset: 2px;
+}
+
+button {
+    font: inherit;
+    color: inherit;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: background-color 0.25s, border-color 0.25s;
+}
+
+/* Logo (see Logo.astro). */
+.logo {
+    display: block;
+}
+
+.logo-body {
+    fill: var(--logo);
+    transition: fill 0.25s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}

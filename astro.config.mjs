@@ -5,5 +5,8 @@ import preact from '@astrojs/preact';
 // https://astro.build/config
 export default defineConfig({
     site: "https://yavashark.dev",
-    integrations: [preact()]
+    integrations: [preact()],
+    redirects: {
+        "/engine": "/#playground",
+    },
 });

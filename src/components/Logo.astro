@@ -1,0 +1,102 @@
+---
+// The logo in its two states. Both bodies share the same path structure, so
+// SVG <animate> can interpolate between them (that's the morph).
+type Shape = { body: string; eye: number; gills: [string, string]; gillWidth: number };
+
+const play: Shape = {
+    body: "M 321.6 208.7 C 339.1 217.8 356.5 226.9 373.9 235.9 C 384.3 241.4 394.8 246.9 405.3 252.3 C 447.1 274.1 488.9 295.9 530.7 317.7 C 635.2 372.3 739.7 426.8 844.3 481.4 C 858.6 488.8 857.8 509.6 843.0 516.0 C 831.4 521.0 819.9 526.0 808.3 531.0 C 806.8 531.7 805.2 532.1 803.5 532.2 C 752.4 537.3 701.2 542.4 650.0 547.4 C 639.3 548.5 637.6 563.4 647.8 566.9 C 660.1 571.0 672.4 575.2 684.7 579.4 C 696.4 583.4 697.6 599.4 686.6 605.1 C 564.8 667.6 442.9 730.2 321.1 792.7 C 261.2 823.4 190.0 780.0 190.0 712.6 C 190.0 571.2 190.0 429.9 190.0 288.5 C 190.0 220.9 261.7 177.4 321.6 208.7 Z",
+    eye: 36,
+    gills: ["M 470 400 L 420 494", "M 532 414 L 482 508"],
+    gillWidth: 24,
+};
+
+const shark: Shape = {
+    body: "M 270.0 316.0 C 287.6 313.4 306.2 311.4 325.5 310.0 C 330.3 309.7 335.2 309.4 340.1 309.1 C 376.8 307.0 415.5 307.0 453.9 309.2 C 517.8 313.0 580.5 323.0 631.0 340.0 C 732.0 374.0 818.0 428.0 852.0 485.0 C 872.0 522.0 858.0 561.0 816.0 574.0 C 790.0 582.0 764.0 590.0 740.0 596.0 C 660.0 612.0 594.0 624.0 534.0 628.0 C 534.0 628.0 534.0 628.0 534.0 628.0 C 586.0 653.0 651.0 669.0 698.0 678.0 C 716.0 680.0 721.0 696.0 706.0 709.0 C 612.0 770.0 440.0 852.0 300.0 866.0 C 222.0 872.0 168.0 836.0 160.0 770.0 C 150.0 660.0 150.0 520.0 170.0 420.0 C 186.0 352.0 226.0 330.0 270.0 316.0 Z",
+    eye: 44,
+    gills: ["M 412 439 L 339 556", "M 488 459 L 415 576"],
+    gillWidth: 28,
+};
+
+interface Props {
+    id: string;
+    shape?: "play" | "shark";
+    /**
+     * `shape → other → shape`. "click" plays when the logo is clicked (via a transparent
+     * hit rect, Chrome ignores click triggers on the outer <svg>), "manual" on `#<key>_hop`.beginElement().
+     */
+    hop?: "click" | "manual";
+    /** Adds `#<key>_to` (shape → other) and `#<key>_back` (other → shape), started with beginElement(). `<key>` is `id` with "-" → "_". */
+    morph?: boolean;
+    /** Seconds per animation. */
+    dur?: number;
+    class?: string;
+    label?: string;
+}
+
+const { id, shape = "shark", hop, morph = false, dur = 1.3, class: className, label } = Astro.props;
+const from = shape === "shark" ? shark : play;
+const to = shape === "shark" ? play : shark;
+// Ids used in SMIL timing (`x.click`, `x.begin`) can't contain "-", Chrome won't resolve them.
+const key = id.replaceAll("-", "_");
+
+const EASE = "0.65 0 0.35 1";
+type Sequence = { id: string; begin: string; shapes: Shape[]; keyTimes: string; keySplines: string; fill: string };
+
+const sequences: Sequence[] = [];
+if (hop) {
+    sequences.push({
+        id: `${key}_hop`,
+        begin: hop === "click" ? `${key}_hit.click` : "indefinite",
+        shapes: [from, to, to, from],
+        keyTimes: "0;0.4;0.6;1",
+        keySplines: `${EASE};${EASE};${EASE}`,
+        fill: "remove",
+    });
+}
+if (morph) {
+    for (const [suffix, shapes] of [["to", [from, to]], ["back", [to, from]]] as const) {
+        sequences.push({ id: `${key}_${suffix}`, begin: "indefinite", shapes: [...shapes], keyTimes: "0;1", keySplines: EASE, fill: "freeze" });
+    }
+}
+
+// Attributes for one <animate>. The body's animation starts the sequence; the
+// others are synced to it.
+const anim = (s: Sequence, values: (shape: Shape) => string | number, leader = false) => ({
+    id: leader ? s.id : undefined,
+    begin: leader ? s.begin : `${s.id}.begin`,
+    values: s.shapes.map(values).join(";"),
+    dur: `${dur}s`,
+    fill: s.fill,
+    calcMode: "spline",
+    keyTimes: s.keyTimes,
+    keySplines: s.keySplines,
+});
+---
+
+<svg
+    class:list={["logo", className]}
+    id={id}
+    viewBox="140 160 740 740"
+    role={label ? "img" : undefined}
+    aria-label={label}
+    aria-hidden={label ? undefined : "true"}
+>
+    <mask id={`${id}-cut`} maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1000">
+        <rect width="1000" height="1000" fill="#fff" />
+        <circle cx="654" cy="462" r={from.eye} fill="#000">
+            {sequences.map((s) => <animate attributeName="r" {...anim(s, (x) => x.eye)} />)}
+        </circle>
+        <g stroke="#000" stroke-width={from.gillWidth} stroke-linecap="round">
+            {sequences.map((s) => <animate attributeName="stroke-width" {...anim(s, (x) => x.gillWidth)} />)}
+            {[0, 1].map((g) => (
+                <path d={from.gills[g]}>
+                    {sequences.map((s) => <animate attributeName="d" {...anim(s, (x) => x.gills[g])} />)}
+                </path>
+            ))}
+        </g>
+    </mask>
+    <path class="logo-body" d={from.body} mask={`url(#${id}-cut)`}>
+        {sequences.map((s) => <animate attributeName="d" {...anim(s, (x) => x.body, true)} />)}
+    </path>
+    {hop === "click" && <rect id={`${key}_hit`} x="140" y="160" width="740" height="740" fill="transparent" />}
+</svg>
