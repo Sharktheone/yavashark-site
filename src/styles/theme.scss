@@ -2,6 +2,7 @@
 
 // Site color schemes, picked with the radios in the top bar (pure CSS via :has()).
 // With nothing picked the site follows the system: white or black.
+// [data-color] on <html> is the saved pick, set in Site.astro's <head> so it applies before first paint.
 
 // test262 chart categories (--c1..--c8), in the stack order of test262-series.ts.
 // Validated for color-blind separation against white and black surfaces.
@@ -67,15 +68,17 @@ $pastels: (
 }
 
 @media (prefers-color-scheme: dark) {
-    :root:not(:has([name="color"]:checked)) {
+    :root:not(:has([name="color"]:checked)):not([data-color]) {
         @include black;
     }
 }
 
+:root[data-color="white"],
 :root:has(#color-white:checked) {
     @include white;
 }
 
+:root[data-color="black"],
 :root:has(#color-black:checked) {
     @include black;
 }
@@ -89,6 +92,7 @@ $pastels: (
 }
 
 @each $name, $h in $pastels {
+    :root[data-color="#{$name}"],
     :root:has(#color-#{$name}:checked) {
         @include pastel($h);
     }

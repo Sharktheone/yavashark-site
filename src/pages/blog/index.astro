@@ -1,0 +1,95 @@
+---
+import { getCollection } from "astro:content";
+import Site from "../../layouts/Site.astro";
+
+const posts = (await getCollection("blog", ({ data }) => !data.draft))
+    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const formatDate = (date: Date) =>
+    date.toLocaleDateString("en", { year: "numeric", month: "long", day: "numeric" });
+---
+
+<Site title="Blog · Yavashark" description="News and notes from the Yavashark JS engine.">
+    <header>
+        <h1>Blog</h1>
+        <p>News and notes from Yavashark.</p>
+    </header>
+
+    {posts.length === 0 ? (
+        <p class="empty">No posts yet.</p>
+    ) : (
+        <ul>
+            {posts.map((post) => (
+                <li>
+                    <a class="box" href={`/blog/${post.id}`}>
+                        <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+                        <h2>{post.data.title}</h2>
+                        {post.data.description && <p>{post.data.description}</p>}
+                    </a>
+                </li>
+            ))}
+        </ul>
+    )}
+</Site>
+
+<style>
+    header {
+        margin-block: 4rem 2.5rem;
+    }
+
+    h1 {
+        margin: 0;
+        font-size: 3.5rem;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+
+    header p,
+    .empty {
+        margin: 0.75rem 0 0;
+        color: var(--muted);
+        font-size: 1.25rem;
+    }
+
+    ul {
+        display: grid;
+        gap: 1rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li a {
+        display: block;
+        padding: 1.25rem 1.5rem;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    li a:hover,
+    li a:focus-visible {
+        border-color: var(--muted);
+    }
+
+    time {
+        color: var(--muted);
+        font-size: 0.875rem;
+    }
+
+    h2 {
+        margin: 0.25rem 0 0;
+        font-size: 1.4rem;
+        color: var(--accent);
+    }
+
+    li p {
+        margin: 0.5rem 0 0;
+        color: var(--muted);
+    }
+
+    @media (max-width: 600px) {
+        h1 {
+            font-size: 2.4rem;
+        }
+    }
+</style>

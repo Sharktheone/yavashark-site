@@ -1,0 +1,145 @@
+---
+import { getCollection, render } from "astro:content";
+import Site from "../../layouts/Site.astro";
+
+export async function getStaticPaths() {
+    const posts = await getCollection("blog", ({ data }) => !data.draft);
+    return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const date = post.data.date.toLocaleDateString("en", { year: "numeric", month: "long", day: "numeric" });
+---
+
+<Site title={`${post.data.title} · Yavashark`} description={post.data.description}>
+    <article>
+        <header>
+            <a class="back" href="/blog">← All posts</a>
+            <h1>{post.data.title}</h1>
+            <time datetime={post.data.date.toISOString()}>{date}</time>
+        </header>
+
+        <div class="prose">
+            <Content />
+        </div>
+    </article>
+</Site>
+
+<style>
+    article {
+        max-width: 44rem;
+        margin-inline: auto;
+    }
+
+    header {
+        margin-block: 3rem 2.5rem;
+    }
+
+    .back {
+        color: var(--muted);
+        font-size: 0.875rem;
+        text-decoration: none;
+    }
+
+    .back:hover {
+        color: var(--fg);
+    }
+
+    h1 {
+        margin: 1rem 0 0.5rem;
+        font-size: 3rem;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+
+    time {
+        color: var(--muted);
+    }
+
+    /* Markdown output isn't scoped, hence :global. */
+    .prose {
+        font-size: 1.0625rem;
+        line-height: 1.7;
+    }
+
+    .prose :global(h2),
+    .prose :global(h3),
+    .prose :global(h4) {
+        margin: 2.25rem 0 0.75rem;
+        line-height: 1.25;
+        letter-spacing: -0.01em;
+    }
+
+    .prose :global(img),
+    .prose :global(video) {
+        max-width: 100%;
+        height: auto;
+        border-radius: var(--radius);
+    }
+
+    .prose :global(blockquote) {
+        margin: 1.5rem 0;
+        padding: 0.25rem 1.25rem;
+        border-left: 3px solid var(--border);
+        color: var(--muted);
+    }
+
+    .prose :global(hr) {
+        margin: 2.5rem 0;
+        border: 0;
+        border-top: 1px solid var(--border);
+    }
+
+    .prose :global(:not(pre) > code) {
+        padding: 0.1em 0.35em;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        background: var(--panel);
+        font: 0.9em var(--mono);
+    }
+
+    .prose :global(pre) {
+        padding: 1rem 1.25rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font: 0.875rem/1.6 var(--mono);
+        overflow-x: auto;
+    }
+
+    .prose :global(table) {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .prose :global(th),
+    .prose :global(td) {
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+    }
+
+    /* Shiki emits both themes; switch to the dark one exactly when theme.scss does. */
+    @media (prefers-color-scheme: dark) {
+        :global(:root:not(:has([name="color"]:checked)):not([data-color])) .prose :global(.astro-code),
+        :global(:root:not(:has([name="color"]:checked)):not([data-color])) .prose :global(.astro-code span) {
+            color: var(--shiki-dark) !important;
+            background-color: var(--shiki-dark-bg) !important;
+        }
+    }
+
+    :global(:root[data-color="black"]) .prose :global(.astro-code),
+    :global(:root[data-color="black"]) .prose :global(.astro-code span),
+    :global(:root:has(#color-black:checked)) .prose :global(.astro-code),
+    :global(:root:has(#color-black:checked)) .prose :global(.astro-code span) {
+        color: var(--shiki-dark) !important;
+        background-color: var(--shiki-dark-bg) !important;
+    }
+
+    @media (max-width: 600px) {
+        h1 {
+            font-size: 2.2rem;
+        }
+    }
+</style>

@@ -1,120 +1,24 @@
 ---
-import "../styles/site.css";
-import "../styles/theme.scss";
-
+import Site from "../layouts/Site.astro";
 import Logo from "../components/Logo.astro";
 import Playground from "../components/Playground.astro";
 import Test262 from "../components/Test262.astro";
-
-// Must match the schemes in theme.scss.
-const colors = ["white", "black", "pink", "peach", "lemon", "mint", "sky", "lavender"];
-
-const repo = "https://github.com/Sharktheone/yavashark";
-const downloads = `${repo}/actions/workflows/build-binaries.yml?query=branch%3Amain+is%3Asuccess`;
 ---
 
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="Yavashark, an experimental JS Engine." />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <title>Yavashark</title>
-    </head>
-    <body>
-        <nav class="top">
-            <fieldset class="colors">
-                <legend class="visually-hidden">Color</legend>
-                {colors.map((id) => (
-                    <>
-                        <input class="visually-hidden" type="radio" name="color" id={`color-${id}`} value={id} />
-                        <label for={`color-${id}`} title={id}>
-                            <span class="visually-hidden">{id}</span>
-                        </label>
-                    </>
-                ))}
-            </fieldset>
-            <div class="links">
-                <a href="/test262">test262</a>
-                <a href={repo}>GitHub</a>
-                <a href={downloads}>Downloads</a>
-            </div>
-        </nav>
+<Site>
+    <header class="hero">
+        <div class="hero-title">
+            <h1>Yavashark</h1>
+            <p>An experimental JS Engine</p>
+        </div>
+        <Logo id="hero-logo" class="hero-logo" label="Yavashark logo" hop="click" />
+        <Playground />
+    </header>
 
-        <main>
-            <header class="hero">
-                <div class="hero-title">
-                    <h1>Yavashark</h1>
-                    <p>An experimental JS Engine</p>
-                </div>
-                <Logo id="hero-logo" class="hero-logo" label="Yavashark logo" hop="click" />
-                <Playground />
-            </header>
-
-            <Test262 />
-        </main>
-
-        <footer>
-            MIT License · <a href={repo}>Sharktheone/yavashark</a>
-        </footer>
-    </body>
-</html>
+    <Test262 />
+</Site>
 
 <style>
-    .top,
-    main,
-    footer {
-        width: min(100% - 2.5rem, 56rem);
-        margin-inline: auto;
-    }
-
-    .top {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.75rem 1.5rem;
-        padding-block: 1.25rem;
-    }
-
-    .colors {
-        display: flex;
-        gap: 0.45rem;
-        margin: 0;
-        padding: 0;
-        border: 0;
-    }
-
-    .colors label {
-        width: 1rem;
-        height: 1rem;
-        border-radius: 50%;
-        background: var(--swatch);
-        box-shadow: inset 0 0 0 1px oklch(0.5 0 0 / 0.35);
-        cursor: pointer;
-        transition: transform 0.15s;
-    }
-
-    .colors label:hover {
-        transform: scale(1.15);
-    }
-
-    .colors input:checked + label {
-        outline: 2px solid var(--fg);
-        outline-offset: 2px;
-    }
-
-    .colors input:focus-visible + label {
-        outline: 2px dashed var(--fg);
-        outline-offset: 2px;
-    }
-
-    .links {
-        display: flex;
-        gap: 1.25rem;
-    }
-
     .hero {
         display: grid;
         grid-template-areas: "logo" "title" "runner";
@@ -154,15 +58,6 @@ const downloads = `${repo}/actions/workflows/build-binaries.yml?query=branch%3Am
         margin: 1rem 0 0;
         color: var(--muted);
         font-size: 1.5rem;
-    }
-
-    footer {
-        margin-top: 4rem;
-        padding-block: 1.25rem 2rem;
-        border-top: 1px solid var(--border);
-        color: var(--muted);
-        font-size: 0.875rem;
-        text-align: center;
     }
 
     @media (max-width: 600px) {

@@ -1,0 +1,146 @@
+---
+import { getCollection } from "astro:content";
+import "../styles/site.css";
+import "../styles/theme.scss";
+
+interface Props {
+    title?: string;
+    description?: string;
+}
+
+const { title = "Yavashark", description = "Yavashark, an experimental JS Engine." } = Astro.props;
+
+// Must match the schemes in theme.scss.
+const colors = ["white", "black", "pink", "peach", "lemon", "mint", "sky", "lavender"];
+
+// Only link the blog once there's something in it.
+const hasPosts = (await getCollection("blog", ({ data }) => !data.draft)).length > 0;
+
+const repo = "https://github.com/Sharktheone/yavashark";
+const downloads = `${repo}/actions/workflows/build-binaries.yml?query=branch%3Amain+is%3Asuccess`;
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content={description} />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <title>{title}</title>
+        <!-- Apply the saved color before first paint (see theme.scss), so it doesn't flash or animate in. -->
+        <script is:inline>
+            {
+                const saved = localStorage.getItem("color");
+                if (saved) document.documentElement.dataset.color = saved;
+            }
+        </script>
+    </head>
+    <body>
+        <nav class="top">
+            <fieldset class="colors">
+                <legend class="visually-hidden">Color</legend>
+                {colors.map((id) => (
+                    <>
+                        <input class="visually-hidden" type="radio" name="color" id={`color-${id}`} value={id} />
+                        <label for={`color-${id}`} title={id}>
+                            <span class="visually-hidden">{id}</span>
+                        </label>
+                    </>
+                ))}
+            </fieldset>
+            <!-- Remember the picked color across pages; keeps the radios and <html data-color> in sync. -->
+            <script is:inline>
+                {
+                    const root = document.documentElement;
+                    const input = root.dataset.color && document.getElementById("color-" + root.dataset.color);
+                    if (input) input.checked = true;
+                    document.querySelector(".colors").addEventListener("change", (e) => {
+                        root.dataset.color = e.target.value;
+                        localStorage.setItem("color", e.target.value);
+                    });
+                }
+            </script>
+            <div class="links">
+                <a href="/">Home</a>
+                {hasPosts && <a href="/blog">Blog</a>}
+                <a href="/test262">test262</a>
+                <a href={repo}>GitHub</a>
+                <a href={downloads}>Downloads</a>
+            </div>
+        </nav>
+
+        <main>
+            <slot />
+        </main>
+
+        <footer>
+            MIT License · <a href={repo}>Sharktheone/yavashark</a>
+        </footer>
+    </body>
+</html>
+
+<style>
+    .top,
+    main,
+    footer {
+        width: min(100% - 2.5rem, 56rem);
+        margin-inline: auto;
+    }
+
+    .top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem 1.5rem;
+        padding-block: 1.25rem;
+    }
+
+    .colors {
+        display: flex;
+        gap: 0.45rem;
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .colors label {
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        background: var(--swatch);
+        box-shadow: inset 0 0 0 1px oklch(0.5 0 0 / 0.35);
+        cursor: pointer;
+        transition: transform 0.15s;
+    }
+
+    .colors label:hover {
+        transform: scale(1.15);
+    }
+
+    .colors input:checked + label {
+        outline: 2px solid var(--fg);
+        outline-offset: 2px;
+    }
+
+    .colors input:focus-visible + label {
+        outline: 2px dashed var(--fg);
+        outline-offset: 2px;
+    }
+
+    .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+    }
+
+    footer {
+        margin-top: 4rem;
+        padding-block: 1.25rem 2rem;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.875rem;
+        text-align: center;
+    }
+</style>
