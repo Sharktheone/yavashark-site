@@ -74,7 +74,7 @@ From these optimizations you should not expect a new V8-level engine, at least n
 
 To give you a small sneak peek: across a set of 19 microbenchmarks, the prototype interpreter (with its new GC enabled) is on average about 3.5× faster than V8's jitless mode, and it beats it in every single one. In a few of them, like exceptions and generators, it even beats V8 with its JIT turned on. Mostely because V8 has to do some extra steps which the Yavashark doesn't need to.
 
-However, take all of that with a big grain of salt, since porting to a real engine might bring many more slowdowns.
+However, take all of that with a big grain of salt, since integrating into the real engine might bring many more slowdowns.
 
 
 
