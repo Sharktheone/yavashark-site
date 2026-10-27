@@ -4,10 +4,6 @@ description: Announcing Yavashark, a small embeddable and easily extendable Java
 date: 2026-10-28
 ---
 
-
-
-# Yavashark: I've Built A JS Engine Every Day For 950 Days Straight
-
 Today I am announcing Yavashark, a small embeddable and easily extendable JavaScript engine that passes 82% of test262 with support for Temporal, Intl and React/TS.
 
 I've built on it every single day since March 17, 2024 as a side project. I'm still the only contributor, but I am accepting contributions! So far I've made over 4200 commits to the engine repo.
