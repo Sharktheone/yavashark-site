@@ -56,8 +56,7 @@ let script = Fs.open("foo.js")
 eval(script)
 ```
 
-More embedding examples can also be found in the engine's repo.
-
+More embedding examples can also be found [in the engine's repo in the examples dir](https://github.com/Sharktheone/yavashark/tree/main/examples) and the React demo [in the demos dir](https://github.com/Sharktheone/yavashark/tree/main/demos/react-ssr)
 
 
 # Roadmap
